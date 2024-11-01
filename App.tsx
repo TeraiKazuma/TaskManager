@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StyleSheet, Text, View } from 'react-native';
 //各画面をインポート
 import Login from './src/Login'
-import Signup from './src/Signup';
+import Signup from './src/SignUp';
 import Home from './src/Home';
 import AddTask from './src/AddTask';
 import ListTask from './src/ListTask';
