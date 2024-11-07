@@ -8,6 +8,7 @@ import Home from './src/Home';
 import AddTask from './src/AddTask';
 import ListTask from './src/ListTask';
 import Setting from './src/Setting';
+import Test from './src/test';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +22,7 @@ const App = () => {
         <Stack.Screen name="AddTask" component={AddTask} options={{ title: 'タスクを追加' }} />
         <Stack.Screen name="ListTask" component={ListTask} options={{ title: 'タスク一覧' }} />
         <Stack.Screen name="Setting" component={Setting} options={{ title: '設定' }} />
+        <Stack.Screen name="Test" component={Test} options={{ title: 'テスト' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
