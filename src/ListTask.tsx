@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Button } from 'react-native'
 const ListTask = ({navigation} :any)=>{
     return(
         <View>
@@ -8,4 +8,4 @@ const ListTask = ({navigation} :any)=>{
     )
 }
 
-export default ListTask;
+export default ListTask

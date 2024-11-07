@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, Button } from 'react-native';
+import { View, Button } from 'react-native'
 const Signup = ({navigation}: any) => {
     return(
         <View>
@@ -7,4 +7,4 @@ const Signup = ({navigation}: any) => {
     )
 }
 
-export default Signup;
+export default Signup

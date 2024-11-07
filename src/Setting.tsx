@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Button } from 'react-native'
 const Setting = ({navigation} :any)=>{
     return(
         <View>
@@ -7,4 +7,4 @@ const Setting = ({navigation} :any)=>{
     )
 }
 
-export default Setting;
+export default Setting
