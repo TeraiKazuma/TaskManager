@@ -21,7 +21,6 @@ const App = () => {
         <Stack.Screen name="AddTask" component={AddTask} options={{ title: 'タスクを追加' }} />
         <Stack.Screen name="ListTask" component={ListTask} options={{ title: 'タスク一覧' }} />
         <Stack.Screen name="Setting" component={Setting} options={{ title: '設定' }} />
-
       </Stack.Navigator>
     </NavigationContainer>
   );
