@@ -1,34 +1,34 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, Modal, TouchableOpacity, TextInput, StyleSheet, LayoutChangeEvent } from 'react-native';
+import React, { useState,} from 'react'
+import { View, Text, Modal, TouchableOpacity, TextInput, StyleSheet, LayoutChangeEvent } from 'react-native'
 
 type Option = {
-  id: number;
-  label: string;
-};
+  id: number
+  label: string
+}
 
 const options: Option[] = [
   { id: 1, label: 'Option 1' },
   { id: 2, label: 'Option 2' },
   { id: 3, label: 'Option 3' },
-];
+]
 
 const SelectionPopup: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<Option | null>(null);
-  const [inputWidth, setInputWidth] = useState<number | null>(null);
+  const [isVisible, setIsVisible] = useState(false)
+  const [selectedOption, setSelectedOption] = useState<Option | null>(null)
+  const [inputWidth, setInputWidth] = useState<number | null>(null)
 
-  const openModal = () => setIsVisible(true);
-  const closeModal = () => setIsVisible(false);
+  const openModal = () => setIsVisible(true)
+  const closeModal = () => setIsVisible(false)
 
   const handleOptionSelect = (option: Option) => {
-    setSelectedOption(option);
-    closeModal();
-  };
+    setSelectedOption(option)
+    closeModal()
+  }
 
   const handleInputLayout = (event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout;
-    setInputWidth(width);
-  };
+    const { width } = event.nativeEvent.layout
+    setInputWidth(width)
+  }
 
   return (
     <View style={styles.container}>
@@ -71,8 +71,8 @@ const SelectionPopup: React.FC = () => {
         </View>
       </Modal>
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -141,6 +141,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'black',
   },
-});
+})
 
-export default SelectionPopup;
+export default SelectionPopup

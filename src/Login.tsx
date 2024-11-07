@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import {
     View,
     KeyboardAvoidingView,
@@ -9,11 +8,8 @@ import {
     TouchableWithoutFeedback,
     Button,
     Keyboard,
-  } from 'react-native';
-type RootStackParamList = {
-    Login: undefined;
-    Home: undefined;  // Homeがここに定義されていることを確認
-    };
+  } from 'react-native'
+
 
 const Login = ({navigation} :any) => {
     
@@ -61,6 +57,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         marginTop: 12,
     },
-});
+})
 
-export default Login;
+export default Login

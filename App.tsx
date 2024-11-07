@@ -1,16 +1,15 @@
-import { NavigationContainer} from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer} from '@react-navigation/native'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
 //各画面をインポート
 import Login from './src/Login'
-import Signup from './src/SignUp';
-import Home from './src/Home';
-import AddTask from './src/AddTask';
-import ListTask from './src/ListTask';
-import Setting from './src/Setting';
-import Test from './src/test';
+import Signup from './src/SignUp'
+import Home from './src/Home'
+import AddTask from './src/AddTask'
+import ListTask from './src/ListTask'
+import Setting from './src/Setting'
+import Test from './src/test'
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator()
 
 const App = () => {
   return (
@@ -25,7 +24,7 @@ const App = () => {
         <Stack.Screen name="Test" component={Test} options={{ title: 'テスト' }} />
       </Stack.Navigator>
     </NavigationContainer>
-  );
+  )
 }
 
-export default App;
+export default App
