@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, ScrollView, Text, StyleSheet,TouchableOpacity, Button, TextInput,  Platform, Modal, SafeAreaView,} from 'react-native'
+import { View, ScrollView, Text, StyleSheet,TouchableOpacity, Button, TextInput,  Platform, Modal,} from 'react-native'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 
 type Toption = {

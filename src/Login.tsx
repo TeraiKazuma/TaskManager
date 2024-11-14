@@ -8,7 +8,7 @@ import {
     TouchableWithoutFeedback,
     Button,
     Keyboard,
-  } from 'react-native'
+} from 'react-native'
 
 
 const Login = ({navigation} :any) => {
