@@ -1,119 +1,71 @@
-import React, { useState } from 'react'
-import { View, Text, FlatList, Button, StyleSheet } from 'react-native'
-import { Calendar } from 'react-native-calendars'
-import { isSameDay, isSameWeek, isSameMonth } from 'date-fns'
+import React from 'react'
+import { StyleSheet, View, Text, FlatList } from 'react-native'
+import { Divider } from 'react-native-elements'
+import {widthPercentageToDP as wp} from 'react-native-responsive-screen'
 
-interface Task {
-  id: string
-  title: string
-  description?: string
-  date: string // YYYY-MM-DD形式
+interface Person {
+    name: string
+    age: number
 }
 
-const tasks: Task[] = [
-  { id: '1', title: 'ミーティング', date: '2024-11-19' },
-  { id: '2', title: '買い物', date: '2024-11-19' },
-  { id: '3', title: 'プレゼン準備', date: '2024-11-20' },
-  { id: '4', title: '運動', date: '2024-11-21' },
-  // 他のタスクを追加
-]
+const Test: React.FC = () => {
 
-const TaskListScreen: React.FC = () => {
-  const [viewRange, setViewRange] = useState<'day' | 'week' | 'month'>('day')
-  const [selectedDate, setSelectedDate] = useState(new Date())
+    const personList: Person[] = [
+        {
+            name: '一郎',
+            age: 11
+        },
+        {
+            name: '二郎',
+            age: 22
+        },
+        {
+            name: '三郎',
+            age: 33
+        },
+    ]
 
-  // 表示範囲に基づいてタスクをフィルタリング
-  const filteredTasks = tasks.filter(task => {
-    const taskDate = new Date(task.date)
+　　 // 2
+    const renderPerson = ({item}: {item: Person}) => {
 
-    if (viewRange === 'day') {
-      return isSameDay(taskDate, selectedDate)
-    } else if (viewRange === 'week') {
-      return isSameWeek(taskDate, selectedDate)
-    } else if (viewRange === 'month') {
-      return isSameMonth(taskDate, selectedDate)
+        console.log(item)
+
+        return(
+            <View style={styles.container}>
+                <View style={styles.item}>
+                    <Text>{item.name}</Text>
+                    <Text>{item.age}</Text>
+                </View>
+                <Divider />
+            </View>
+        )
     }
-    return false
-  })
 
-  // カレンダーにマークを付ける
-  const markedDates = tasks.reduce((acc: any, task) => {
-    acc[task.date] = { marked: true }
-    return acc
-  }, {})
+    // const renderList: Array<JSX.Element> = []
 
-  // 選択された日付をマーク
-  const selectedDateString = selectedDate.toISOString().split('T')[0]
-  markedDates[selectedDateString] = {
-    ...(markedDates[selectedDateString] || {}),
-    selected: true,
-    selectedColor: 'blue',
-  }
+    // personList.forEach((person) => {
+    //     renderList.push(renderPerson(person))
+    // })
 
-  return (
-    <View style={styles.container}>
-      {/* 表示範囲の切り替えボタン */}
-      <View style={styles.buttonContainer}>
-        <Button title="日" onPress={() => setViewRange('day')} />
-        <Button title="週" onPress={() => setViewRange('week')} />
-        <Button title="月" onPress={() => setViewRange('month')} />
-      </View>
+    return(
+        <View>
+            {/* 1 */} 
+            <FlatList data={personList} renderItem={renderPerson}/>  
+        </View>
+    )
 
-      {/* カレンダー表示 */}
-      <Calendar
-        onDayPress={(day:any) => {
-          setSelectedDate(new Date(day.dateString))
-        }}
-        markedDates={markedDates}
-        theme={{
-          selectedDayBackgroundColor: 'blue',
-          todayTextColor: 'red',
-        }}
-      />
-
-      {/* タスク一覧表示 */}
-      <FlatList
-        data={filteredTasks}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.taskItem}>
-            <Text style={styles.taskTitle}>{item.title}</Text>
-            {item.description && <Text style={styles.taskDescription}>{item.description}</Text>}
-          </View>
-        )}
-        ListEmptyComponent={<Text style={styles.noTaskText}>タスクがありません</Text>}
-      />
-    </View>
-  )
 }
+
+export default Test
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 10,
-  },
-  taskItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-  },
-  taskTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  taskDescription: {
-    marginTop: 5,
-    color: '#555',
-  },
-  noTaskText: {
-    textAlign: 'center',
-    marginTop: 20,
-    color: '#777',
-  },
+    container: {
+        marginTop: wp('7%')
+    },
+    item: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: wp('2%'),
+        marginBottom: wp('2%')
+    }
 })
-
-export default TaskListScreen
