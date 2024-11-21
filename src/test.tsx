@@ -4,7 +4,7 @@ import { Divider } from 'react-native-elements'
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen'
 
 interface Person {
-    name: string
+    Title: string
     age: number
 }
 
@@ -12,15 +12,15 @@ const Test: React.FC = () => {
 
     const personList: Person[] = [
         {
-            name: '一郎',
+            Title: '一郎',
             age: 11
         },
         {
-            name: '二郎',
+            Title: '二郎',
             age: 22
         },
         {
-            name: '三郎',
+            Title: '三郎',
             age: 33
         },
     ]
@@ -33,7 +33,7 @@ const Test: React.FC = () => {
         return(
             <View style={styles.container}>
                 <View style={styles.item}>
-                    <Text>{item.name}</Text>
+                    <Text>{item.Title}</Text>
                     <Text>{item.age}</Text>
                 </View>
                 <Divider />
@@ -41,11 +41,6 @@ const Test: React.FC = () => {
         )
     }
 
-    // const renderList: Array<JSX.Element> = []
-
-    // personList.forEach((person) => {
-    //     renderList.push(renderPerson(person))
-    // })
 
     return(
         <View>
