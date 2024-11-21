@@ -8,13 +8,16 @@ import {
     Modal,
     Button,
 } from 'react-native'
+import { Calendar } from 'react-native-calendars'
 
 // タスクのインターフェースを定義
 interface Task {
     Title: string;
     Kind: string;
-    Date: Date;
-    Time: string;
+    StartDate: Date;
+    EndDate: Date;
+    StartTime: string;
+    EndTime: string;
     Spot: string;
     notice: number
 }
@@ -22,32 +25,39 @@ interface Task {
 const ListTask: React.FC<{ navigation: any }> = ({ navigation }) => {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null) // 選択されたタスク
     const [isModalVisible, setIsModalVisible] = useState(false) // モーダル表示状態
-
+    const [selectedDate, setSelectedDate] = useState<string>('')
+    
     // タスクリストデータ
     const TaskList: Task[] = [
         {
             Title: '予定1',
             Kind: '予定',
-            Date: new Date('2024-11-21'),
-            Time: '12:00',
+            StartDate: new Date('2024-11-21'),
+            EndDate: new Date('2024-11-21'),
+            StartTime: '12:00',
+            EndTime: '18:00',
             Spot: 'KCG',
-            notice:3
+            notice: 3
         },
         {
             Title: 'タスク2',
             Kind: 'タスク',
-            Date: new Date('2024-11-28'),
-            Time: '23:59',
-            Spot: '',
-            notice:1
+            StartDate: new Date('2024-11-21'),
+            EndDate: new Date('2024-11-28'),
+            StartTime: '23:59',
+            EndTime: '23:59',
+            Spot: 'q',
+            notice: 1
         },
         {
             Title: 'イベント3',
             Kind: 'イベント',
-            Date: new Date('2024-12-01'),
-            Time: '10:00',
+            StartDate: new Date('2024-12-01'),
+            EndDate: new Date('2024-12-01'),
+            StartTime: '10:00',
+            EndTime: '17:00',
             Spot: '京都駅',
-            notice:24
+            notice: 24
         },
     ]
 
@@ -71,25 +81,49 @@ const ListTask: React.FC<{ navigation: any }> = ({ navigation }) => {
         >
             <Text>
                 {item.Title} {item.Kind} {'\n'}
-                {item.Date.toLocaleDateString('ja-JP')} {item.Time} {item.Spot}
+                {item.EndDate.toLocaleDateString('ja-JP')} {item.StartTime} {item.Spot}
             </Text>
         </TouchableOpacity>
     )
+
     const getNoticeTimeLabel = (notice: number): string => {
         if (notice < 1) {
             const minutes = notice * 60
-            return `${Math.round(minutes)} 分前`
+            return `${minutes} 分前`
         } else if (notice < 24) {
-            return `${Math.round(notice)} 時間前`
+            return `${notice} 時間前`
         } else {
             const days = notice / 24
-            return `${Math.round(days)} 日前`
+            return `${days} 日前`
+        }
+    }
+
+    const getDate = (StartDate: string,EndDate: string): string => {
+        if(StartDate==EndDate){
+            return StartDate
+        }else{
+            return `${StartDate}-${EndDate}`
+        }
+    }
+    const getTime = (StartTime: string,EndTime: string): string => {
+        if(StartTime==EndTime){
+            return StartTime
+        }else{
+            return `${StartTime}-${EndTime}`
         }
     }
 
 
+    // カレンダー用に日付をフォーマット
+    const markedDates = TaskList.reduce((acc, task) => {
+        const dateKey = task.StartDate.toISOString().split('T')[0]
+        acc[dateKey] = { marked: true, dotColor: 'red' } // 赤いドットを表示
+        return acc
+    }, {} as Record<string, any>)
+
     return (
         <View>
+            <Text style={styles.TitleText}>タスク一覧</Text>
             {/* タスクリスト */}
             <FlatList<Task>
                 data={TaskList}
@@ -112,11 +146,14 @@ const ListTask: React.FC<{ navigation: any }> = ({ navigation }) => {
                                 <Text style={styles.optionText}>タイトル：{selectedTask.Title}</Text>
                                 <Text style={styles.optionText}>種類：{selectedTask.Kind}</Text>
                                 <Text style={styles.optionText}>
-                                    日付：{selectedTask.Date.toLocaleDateString('ja-JP')}
+                                    日付：{getDate(selectedTask.StartDate.toLocaleDateString('ja-JP'),selectedTask.EndDate.toLocaleDateString('ja-JP'))}
                                 </Text>
-                                <Text style={styles.optionText}>時刻：{selectedTask.Time}</Text>
+                                <Text style={styles.optionText}>時刻：{getTime(selectedTask.StartTime,selectedTask.EndTime)}</Text>
+                                 {/* 通知時刻を判別して表示 */}
+                                <Text style={styles.optionText}>
+                                    通知時刻: {getNoticeTimeLabel(selectedTask.notice)}
+                                </Text>
                                 <Text style={styles.optionText}>場所：{selectedTask.Spot}</Text>
-                                <Text style={styles.optionText}>通知：{getNoticeTimeLabel(selectedTask.notice)}</Text>
                             </>
                         )}
                         <TouchableOpacity
@@ -128,6 +165,17 @@ const ListTask: React.FC<{ navigation: any }> = ({ navigation }) => {
                     </View>
                 </View>
             </Modal>
+            {/* カレンダー */}
+            <Calendar
+                markedDates={{
+                    ...markedDates, // タスクの日付をマーク
+                    [selectedDate]: { selected: true, selectedColor: 'blue' }, // 選択日付をハイライト
+                }}
+                onDayPress={(day:any) => {
+                    setSelectedDate(day.dateString) // 選択した日付を状態に保存
+                }}
+                style={{ marginTop: 20 }}
+            />
 
             {/* フッターボタン */}
             <Button
@@ -181,6 +229,11 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'black',
         backgroundColor: '#f0f0f0',
+    },
+    TitleText: {
+        fontSize: 20, 
+        textAlign:'center', 
+        marginTop:10
     },
 })
 
