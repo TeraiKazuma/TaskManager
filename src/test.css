@@ -1,0 +1,21 @@
+/* 日付ピッカー全体のスタイル */
+.react-datepicker__input-container input {
+    width: 3000px; /* 幅を親要素いっぱいに設定 */
+    height: 30px; /* 高さを調整 */
+    padding: 5px;
+    border: 1px solid black; /* 黒い枠線を追加 */
+    background-color: #f5f5f5; /* グレーの背景色 */
+    box-sizing: border-box;
+    font-size: 14px; /* フォントサイズを調整 */
+}
+
+/* ホバー時のスタイル */
+.react-datepicker__input-container input:hover {
+    border-color: #000000; /* ホバー時の枠線色 */
+}
+
+/* フォーカス時のスタイル */
+.react-datepicker__input-container input:focus {
+    outline: none;
+    border-color: #000000; /* フォーカス時の枠線色 */
+}
