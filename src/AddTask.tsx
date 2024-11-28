@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, ScrollView, Text, StyleSheet,TouchableOpacity, Button, TextInput,  Platform, Modal, SafeAreaView,} from 'react-native'
+import { View, ScrollView, Text, StyleSheet,TouchableOpacity, Button, TextInput,  Platform, Modal,} from 'react-native'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 
 type Toption = {
@@ -100,7 +100,7 @@ const AddTask = ({navigation} :any)=>{
                 >
                     <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>オプションを選択してください</Text>
+                        <Text style={styles.modalTitle}>スケジュールを選択してください</Text>
                         {taskKind.map((toption) => (
                         <TouchableOpacity
                             key={toption.id}
@@ -152,7 +152,7 @@ const AddTask = ({navigation} :any)=>{
                 >
                     <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>オプションを選択してください</Text>
+                        <Text style={styles.modalTitle}>通知時刻を選択してください</Text>
                         {notice.map((noption) => (
                         <TouchableOpacity
                             key={noption.id}
