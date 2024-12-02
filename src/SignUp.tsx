@@ -1,34 +1,61 @@
-import {
-    View,
-    KeyboardAvoidingView,
-    TextInput,
-    StyleSheet,
-    Text,
-    Platform,
-    TouchableWithoutFeedback,
-    Button,
-    Keyboard,
+import React, { useState } from 'react';
+import BACKEND_URL from './config';
+import {View,KeyboardAvoidingView,TextInput,StyleSheet,Text,Platform,TouchableWithoutFeedback,Button,Keyboard,Alert
 } from 'react-native'
 
 
 const Signup = ({navigation} :any) => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const handleSignup = async () => {
+        try {
+            const response = await fetch(`${BACKEND_URL}/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                }),
+            });
+    
+            if (response.ok) {
+                const result = await response.json();
+                Alert.alert('成功', result.message);
+                navigation.navigate('Login'); // ログイン画面に遷移
+            } else {
+                const error = await response.json();
+                Alert.alert('エラー', error.message || '登録に失敗しました');
+            }
+        } catch (error) {
+            console.error(error);
+            Alert.alert('エラー', 'サーバーに接続できませんでした');
+        }
+    };
     return(
         <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.inner}>
+            <View style={styles.inner}>
                 <Text style={styles.header}>新規登録</Text>
-                <TextInput placeholder="ユーザー名" style={styles.textInput} />
-                <TextInput 
-                placeholder="パスワード" 
-                secureTextEntry
-                style={styles.textInput} />
+                <TextInput
+                        placeholder="ユーザー名"
+                        style={styles.textInput}
+                        value={username}
+                        onChangeText={setUsername}
+                    />
+                <TextInput
+                        placeholder="パスワード"
+                        secureTextEntry
+                        style={styles.textInput}
+                        value={password}
+                        onChangeText={setPassword}
+                    />
                 <View style={styles.btnContainer}>
-                    <Button title="新規登録" onPress={() => navigation.navigate('Login')} />
+                    <Button title="新規登録" onPress={handleSignup} />
                 </View>
-                </View>
-            </TouchableWithoutFeedback>
+            </View>
         </KeyboardAvoidingView>
     )
 }
