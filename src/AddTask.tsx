@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { View, ScrollView, Text, StyleSheet, TouchableOpacity, Button, TextInput, Platform, Modal } from 'react-native'
+import BACKEND_URL from './config'
+import { View, ScrollView, Text, StyleSheet, TouchableOpacity, Button, TextInput, Platform, Modal, Alert } from 'react-native'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 
 // タスクの種類を定義する型
@@ -36,6 +37,12 @@ const AddTask = ({ navigation }: any) => {
     const [date, setDate] = useState<Date>(new Date()) // 初期値は現在時刻
     const [mode, setMode] = useState<'date' | 'time'>('date') // 初期モードは「日付」
     const [show, setShow] = useState(false) // DateTimePickerの表示制御
+    const [title, setTitle] = useState('')
+    const [kind, setKind] = useState('')
+    const [place, setPlace] = useState('')
+    const [nottime, setNottime] = useState('')
+    const [url, setUrl] = useState('')
+    const [memo, setMemo] = useState('')
 
     // モーダルの表示制御用ステート
     const [isKindModalVisible, setIsKindModalVisible] = useState(false) // 種類選択モーダル
@@ -81,15 +88,41 @@ const AddTask = ({ navigation }: any) => {
     // タスクの種類を選択したときの処理
     const handleOptionSelect = (option: Toption) => {
         setSelectedOption(option) // 選択された種類を保存
+        setKind(option.label)
         closeKindModal() // モーダルを閉じる
     }
 
     // 通知時間を選択したときの処理
     const NOptionSelect = (option: Noption) => {
         setSelectedNOption(option) // 選択された通知時間を保存
+        setNottime(option.label)
         closeNoticeModal() // モーダルを閉じる
     }
+    
+    const AddTask = async () => {
+        try {
+            const response = await fetch(`${BACKEND_URL}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({title,kind,place,nottime,url,memo,
+                    date: date.toISOString(), // ISO 8601形式に変換
+                }),
+            })
 
+            const data = await response.json()
+
+            if (response.ok) {
+                Alert.alert('追加成功', data.message)
+            } else {
+                Alert.alert('追加失敗', data.message)
+            }
+        } catch (error) {
+            console.error(error)
+            Alert.alert('エラー', 'サーバーに接続できませんでした。')
+        }
+    }
     
 
     return (
@@ -104,6 +137,7 @@ const AddTask = ({ navigation }: any) => {
                     style={styles.input}
                     placeholder='タイトル'
                     keyboardType="numeric" // 数字キーボードを指定
+                    onChangeText={setTitle}
                 />
 
                 {/* 種類選択 */}
@@ -165,6 +199,7 @@ const AddTask = ({ navigation }: any) => {
                     style={styles.input}
                     placeholder='場所'
                     keyboardType="numeric"
+                    onChangeText={setPlace}
                 />
 
                 {/* 通知時刻選択 */}
@@ -205,6 +240,7 @@ const AddTask = ({ navigation }: any) => {
                     style={styles.input}
                     placeholder='URL'
                     keyboardType="numeric"
+                    onChangeText={setUrl}
                 />
 
                 {/* メモ入力 */}
@@ -213,10 +249,12 @@ const AddTask = ({ navigation }: any) => {
                     style={styles.input}
                     placeholder='メモ'
                     keyboardType="numeric"
+                    onChangeText={setMemo}
                 />
 
                 {/* タスク追加ボタン */}
-                <Button title="タスクを追加" onPress={() => navigation.navigate('ListTask')} />
+                <Button title="タスクを追加" onPress={AddTask} />
+                <Button title="一覧へ" onPress={() => navigation.navigate('ListTask')} />
             </View>
         </ScrollView>
     )

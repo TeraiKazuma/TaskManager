@@ -18,7 +18,7 @@ def login():
         return jsonify({'message': 'ログイン成功'}), 201
     return jsonify({'message': 'ユーザー名またはパスワードが間違っています。'}), 401
     
-@app.route('/signup', methods=['POST'])
+@app.route('/Signup', methods=['POST'])
 def signup():
     data = request.get_json()
     username = data.get('username')
@@ -31,3 +31,16 @@ def signup():
     
 
     return jsonify({'message': '新規登録が完了しました'}), 200
+
+@app.route('/Addtask', methods=['POST'])
+def addtask():
+    data = request.get_json()
+    title = data.get('title')
+    kind = data.get('kind')
+    place = data.get('place')
+    nottime = data.get('nottime')
+    url = data.get('url')
+    memo = data.get('memo')
+    date = data.get('date')
+    
+    
