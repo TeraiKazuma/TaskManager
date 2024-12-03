@@ -90,6 +90,8 @@ const AddTask = ({ navigation }: any) => {
         closeNoticeModal() // モーダルを閉じる
     }
 
+    
+
     return (
         <ScrollView>
             <View>

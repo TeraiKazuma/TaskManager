@@ -2,11 +2,11 @@ import { NavigationContainer} from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 //各画面をインポート
 import Login from './src/Login'
-import Signup from './src/SignUp';
-import Home from './src/Home';
-import AddTask from './src/AddTask';
-import ListTask from './src/ListTask';
-import Setting from './src/Setting';
+import Signup from './src/SignUp'
+import Home from './src/Home'
+import AddTask from './src/AddTask'
+import ListTask from './src/ListTask'
+import Setting from './src/Setting'
 import Test from './src/test'
 
 const Stack = createNativeStackNavigator()
