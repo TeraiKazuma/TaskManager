@@ -8,7 +8,7 @@ import {
     Modal,
     Button,
 } from 'react-native'
-import { Calendar } from 'react-native-calendars'
+import { Calendar} from 'react-native-calendars'
 
 // タスクのインターフェースを定義
 interface Task {
@@ -25,7 +25,6 @@ interface Task {
 const ListTask: React.FC<{ navigation: any }> = ({ navigation }) => {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null) // 選択されたタスク
     const [isModalVisible, setIsModalVisible] = useState(false) // モーダル表示状態
-    const [selectedDate, setSelectedDate] = useState<string>('')
     
     // タスクリストデータ
     const TaskList: Task[] = [
@@ -167,14 +166,9 @@ const ListTask: React.FC<{ navigation: any }> = ({ navigation }) => {
             </Modal>
             {/* カレンダー */}
             <Calendar
-                markedDates={{
-                    ...markedDates, // タスクの日付をマーク
-                    [selectedDate]: { selected: true, selectedColor: 'blue' }, // 選択日付をハイライト
-                }}
-                onDayPress={(day:any) => {
-                    setSelectedDate(day.dateString) // 選択した日付を状態に保存
-                }}
                 style={{ marginTop: 20 }}
+                markingType={'custom'} // カスタムマークを有効にする
+                markedDates={markedDates} // マークされた日付を設定
             />
 
             {/* フッターボタン */}
