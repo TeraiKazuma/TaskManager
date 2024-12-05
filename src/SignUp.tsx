@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import BACKEND_URL from './config'
+import BACKEND_URL from '../utils/config'
 import {View,KeyboardAvoidingView,TextInput,StyleSheet,Text,Platform,Button,Alert
 } from 'react-native'
 

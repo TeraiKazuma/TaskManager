@@ -6,8 +6,7 @@ import jwt
 from datetime import datetime, date, time,timedelta
 from dateutil.parser import parse  # ISO 8601形式の解析
 from pytz import timezone
-
-SECRET_KEY = 'e97b6ac8773c3942d0ebe2ceabc49f638a25a5f7d4bc2781'
+from config import SECRET_KEY
 
 #=====================================
 # ルーティング
@@ -68,20 +67,18 @@ def addtask():
         nottime = data.get('nottime')
         url = data.get('url')
         memo = data.get('memo')
-        date = data.get('date')
-        date_obj = parse(date)  # ISO 8601形式から`datetime`型に変換
-        local_datetime = date_obj.astimezone(timezone('Asia/Tokyo'))  # 日本時間に変換
+        startdate = data.get('startdate')
+        enddate = data.get('enddate')
+        startdate_obj = parse(startdate)  # ISO 8601形式から`datetime`型に変換
+        enddate_obj = parse(enddate)
+        local_startdatetime = startdate_obj.astimezone(timezone('Asia/Tokyo'))  # 日本時間に変換
+        local_enddatetime = enddate_obj.astimezone(timezone('Asia/Tokyo'))
         
         # 日付と時間に分割
-        date_part = local_datetime.date()  # `datetime.date`型
-        time_part = local_datetime.time()  # `datetime.time`型
-        print(f"Received datetime: {date_obj}")
-        print(f"Received datetime: {local_datetime}")
-        print(f"Extracted date: {date_part}")
-        print(f"Extracted time: {time_part}")
-        
-        if time_part == time(0, 0):  # デフォルトの`00:00:00`の場合
-            time_part = None  # データベースに`NULL`として保存する場合
+        startdate_part = local_startdatetime.date()  # `datetime.date`型
+        starttime_part = local_startdatetime.time()  # `datetime.time`型
+        enddate_part = local_enddatetime.date()  # `datetime.date`型
+        endtime_part = local_enddatetime.time()  # `datetime.time`型
         
         
         #データベースに追加するデータ
@@ -89,8 +86,10 @@ def addtask():
                     user_id=user_id,
                     title=title,
                     kind=kind,
-                    date=date_part,
-                    time=time_part,
+                    startdate=startdate_part,
+                    starttime=starttime_part,
+                    enddate=enddate_part,
+                    endtime=endtime_part,
                     place=place,
                     notice=nottime,
                     url=url,

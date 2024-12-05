@@ -4,7 +4,7 @@ import { removeToken } from '../utils/auth'
 
 type HomeProps = {
     navigation: any;
-  };
+};
 
 const Home: React.FC<HomeProps> = ({navigation} :any)=>{
     const handleLogout = async () => {

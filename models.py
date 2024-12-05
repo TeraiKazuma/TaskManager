@@ -31,8 +31,10 @@ class Task(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # user_id
     title = db.Column(db.String(200), nullable=False)    # タスク名
     kind = db.Column(db.String(200))    # タスクの種類
-    date = db.Column(db.Date)    # 日付
-    time = db.Column(db.Time)    # 時間
+    startdate = db.Column(db.Date)    # 開始日付
+    starttime = db.Column(db.Time)    # 開始時間
+    enddate = db.Column(db.Date)    # 終了日付
+    endtime = db.Column(db.Time)    # 終了時間
     place = db.Column(db.String(200))   # 場所
     notice = db.Column(db.Integer)  # 通知時刻
     url = db.Column(db.String(200))     # URL
