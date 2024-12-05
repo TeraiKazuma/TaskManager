@@ -9,7 +9,7 @@ const Signup = ({navigation} :any) => {
     const [password, setPassword] = useState('')
     const handleSignup = async () => {
         try {
-            const response = await fetch(`${BACKEND_URL}/signup`, {
+            const response = await fetch(`${BACKEND_URL}/Signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import BACKEND_URL from './config'
 import { View, ScrollView, Text, StyleSheet, TouchableOpacity, Button, TextInput, Platform, Modal, Alert } from 'react-native'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
+import { getToken } from '../utils/auth'
 
 // タスクの種類を定義する型
 type Toption = {
@@ -32,7 +33,7 @@ const notice: Noption[] = [
     { id: 1440, label: '1日前' },
 ]
 
-const AddTask = ({ navigation }: any) => {
+const AddTask: React.FC = ({ navigation }: any) => {
     // 日付と時刻選択のためのステート
     const [date, setDate] = useState<Date>(new Date()) // 初期値は現在時刻
     const [mode, setMode] = useState<'date' | 'time'>('date') // 初期モードは「日付」
@@ -40,7 +41,7 @@ const AddTask = ({ navigation }: any) => {
     const [title, setTitle] = useState('')
     const [kind, setKind] = useState('')
     const [place, setPlace] = useState('')
-    const [nottime, setNottime] = useState('')
+    const [nottime, setNottime] = useState(0)
     const [url, setUrl] = useState('')
     const [memo, setMemo] = useState('')
 
@@ -95,19 +96,22 @@ const AddTask = ({ navigation }: any) => {
     // 通知時間を選択したときの処理
     const NOptionSelect = (option: Noption) => {
         setSelectedNOption(option) // 選択された通知時間を保存
-        setNottime(option.label)
+        setNottime(option.id)
         closeNoticeModal() // モーダルを閉じる
     }
     
     const AddTask = async () => {
         try {
-            const response = await fetch(`${BACKEND_URL}/`, {
+            const token = await getToken() //トークン取得
+            
+            const response = await fetch(`${BACKEND_URL}/Addtask`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({title,kind,place,nottime,url,memo,
-                    date: date.toISOString(), // ISO 8601形式に変換
+                    date: date.toISOString(), // ISO 8601形式（日時を含む）
                 }),
             })
 

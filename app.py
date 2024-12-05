@@ -11,7 +11,7 @@ from flask_login import LoginManager
 # ==================================================
 # Flaskアプリのインスタンス生成
 app = Flask(__name__)
-CORS(app)  # 必要に応じてCORSを有効化
+CORS(app, resources={r"/*": {"origins": "*"}})  # 全てのオリジンを許可
 
 # 乱数を設定
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -25,11 +25,6 @@ db.init_app(app)
 migrate = Migrate(app, db)
 
 from views import *
-
-# Flask-Login の設定
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
 
 # ==================================================
 # 実行

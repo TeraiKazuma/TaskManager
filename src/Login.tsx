@@ -1,18 +1,15 @@
 import React, { useState } from 'react'
 import BACKEND_URL from './config'
-import {
-    View,
-    KeyboardAvoidingView,
-    TextInput,
-    StyleSheet,
-    Text,
-    Platform,
-    Button,
-    Alert,
-} from 'react-native'
+import {View, KeyboardAvoidingView, TextInput, StyleSheet, Text,
+        Platform, Button, Alert,} from 'react-native'
+import { saveToken } from '../utils/auth'
 
+type LoginProps = {
+    navigation: any;
+    setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-const Login = ({navigation} :any) => {
+const Login: React.FC<LoginProps> = ({navigation, setIsLoggedIn} :any) => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
 
@@ -33,8 +30,10 @@ const Login = ({navigation} :any) => {
             const data = await response.json()
 
             if (response.ok) {
+                await saveToken(data.token) // トークンを保存
                 Alert.alert('ログイン成功', data.message)
-                navigation.navigate('Home') // ログイン成功時にHome画面に遷移
+                setIsLoggedIn(true) // ログイン状態を更新
+                navigation.navigate('Home')
             } else {
                 Alert.alert('ログイン失敗', data.message || 'ユーザー名またはパスワードが間違っています。')
             }

@@ -29,10 +29,10 @@ class Task(db.Model):
     __tablename__ = 'tasks' # テーブル名
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)# タスクID
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # user_id
-    name = db.Column(db.String(200), nullable=False)    # タスク名
+    title = db.Column(db.String(200), nullable=False)    # タスク名
     kind = db.Column(db.String(200))    # タスクの種類
     date = db.Column(db.Date)    # 日付
-    time = db.Column(db.DateTime)    # 時間
+    time = db.Column(db.Time)    # 時間
     place = db.Column(db.String(200))   # 場所
     notice = db.Column(db.Integer)  # 通知時刻
     url = db.Column(db.String(200))     # URL
