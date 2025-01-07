@@ -1,234 +1,177 @@
-import React, { useState } from 'react'
-import {
-    View,
-    Text,
-    FlatList,
-    TouchableOpacity,
-    StyleSheet,
-    Modal,
-    Button,
-} from 'react-native'
-import { Calendar} from 'react-native-calendars'
+// ListTask.tsx
+import React, { useEffect, useState } from 'react'
+import { View } from 'react-native'
+import axios from 'axios'
+import dayjs from 'dayjs'
+import { CalendarList, LocaleConfig } from 'react-native-calendars'
 
-// タスクのインターフェースを定義
-interface Task {
-    Title: string;
-    Kind: string;
-    StartDate: Date;
-    EndDate: Date;
-    StartTime: string;
-    EndTime: string;
-    Spot: string;
-    notice: number
+// 他ファイルからインポート
+import { Task } from './components/Task'
+import { CalendarItem } from './components/CalendarItem'
+import { CalendarDayItem } from './components/CalendarDayItem'
+
+/**
+ * Flaskサーバーの URL
+ * （シミュレータ使用時に合わせて '10.0.2.2:5000' などに変更することも）
+ */
+const BACKEND_URL = 'http://127.0.0.1:5000'
+
+// -----------------------
+// メイン画面コンポーネント
+// -----------------------
+const ListTask: React.FC = () => {
+  // 取得したタスク一覧
+  const[, setTaskList] = useState<Task[]>([])
+
+  // カレンダーに描画するイベントバー一覧 (日付ごとにまとめたMap)
+  const [eventItems, setEventItems] = useState<Map<string, CalendarItem[]>>(
+    new Map()
+  )
+
+  // マウント時にタスクを取得
+  useEffect(() => {
+    fetchTasks()
+  }, [])
+
+  // -----------------------
+  // Pythonサーバーからタスク一覧をGET
+  // -----------------------
+  const fetchTasks = async () => {
+    try {
+      const response = await axios.get<Task[]>(`${BACKEND_URL}/task_list`)
+      const tasks = response.data // [ { id, title, ... }, {...}, ... ]
+
+      setTaskList(tasks)
+
+      // タスク一覧をカレンダー用のイベントバーMapに変換
+      const mapData = createEventItems(tasks)
+      setEventItems(mapData)
+
+    } catch (error) {
+      console.error('タスク取得エラー: ', error)
+    }
+  }
+
+  // -----------------------
+  // Task[] → eventItems(Map) に変換
+  // -----------------------
+  const createEventItems = (tasks: Task[]): Map<string, CalendarItem[]> => {
+    const result = new Map<string, CalendarItem[]>()
+
+    tasks.forEach((task) => {
+      // 例: "2025-01-10" → dayjs("2025-01-10")
+      const start = dayjs(task.startdate)
+      const end   = dayjs(task.enddate)
+
+      // バーの色(例として固定)
+      // kind ごとに変えたり、idごとに変えたりしてもOK
+      const color = '#87CEEB'
+
+      // 開始日～終了日までの日数
+      const diffDays = end.diff(start, 'day') + 1
+
+      if (diffDays <= 1) {
+        // 同一日
+        const key = start.format('YYYY-MM-DD')
+        const arr = result.get(key) ?? []
+        const newIndex = arr.length // 同日内の既存件数を index に
+
+        arr.push({
+          id: String(task.id),
+          index: newIndex,
+          color,
+          text: task.title,
+          type: 'all',
+        })
+
+        result.set(key, arr)
+
+      } else {
+        // 複数日にまたがる場合
+        let fixedIndex: number | null = null
+
+        for (let i = 0; i < diffDays; i++) {
+          const currentDay = start.add(i, 'day')
+          const key = currentDay.format('YYYY-MM-DD')
+          const arr = result.get(key) ?? []
+
+          // 同じ連続予定は同じ index で縦に並べる
+          if (fixedIndex === null) {
+            fixedIndex = arr.length
+          }
+
+          // 開始日or終了日or中間かで type を分ける
+          let eventType: CalendarItem['type'] = 'between'
+          if (i === 0) {
+            eventType = 'start'
+          } else if (i === diffDays - 1) {
+            eventType = 'end'
+          }
+
+          arr.push({
+            id: String(task.id),
+            index: fixedIndex,
+            color,
+            text: task.title,
+            type: eventType,
+          })
+
+          result.set(key, arr)
+        }
+      }
+    })
+
+    return result
+  }
+
+  // -----------------------
+  // カレンダーの日本語設定
+  // -----------------------
+  LocaleConfig.locales.jp = {
+    monthNames: [
+      '1月','2月','3月','4月','5月','6月',
+      '7月','8月','9月','10月','11月','12月'
+    ],
+    monthNamesShort: [
+      '1月','2月','3月','4月','5月','6月',
+      '7月','8月','9月','10月','11月','12月'
+    ],
+    dayNames: [
+      '日曜日','月曜日','火曜日','水曜日','木曜日','金曜日','土曜日'
+    ],
+    dayNamesShort: ['日','月','火','水','木','金','土'],
+  }
+  LocaleConfig.defaultLocale = 'jp'
+
+  // 日付セルの最低高さ
+  const cellMinHeight = 80
+
+  // -----------------------
+  // レンダリング
+  // -----------------------
+  return (
+    <View style={{ flex: 1 }}>
+      <CalendarList
+        // dayComponent に独自コンポーネントを指定し、eventItemsを渡す
+        dayComponent={(dayProps) => (
+          <CalendarDayItem
+            {...dayProps}
+            eventItems={eventItems}
+            cellMinHeight={cellMinHeight}
+          />
+        )}
+        pastScrollRange={12}
+        futureScrollRange={12}
+        firstDay={1}
+        showSixWeeks={true}
+        hideExtraDays={false}
+        monthFormat="yyyy年 M月"
+        horizontal={true}
+        hideArrows={false}
+        pagingEnabled={true}
+      />
+    </View>
+  )
 }
-
-const ListTask: React.FC<{ navigation: any }> = ({ navigation }) => {
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null) // 選択されたタスク
-    const [isModalVisible, setIsModalVisible] = useState(false) // モーダル表示状態
-    
-    // タスクリストデータ
-    const TaskList: Task[] = [
-        {
-            Title: '予定1',
-            Kind: '予定',
-            StartDate: new Date('2024-11-21'),
-            EndDate: new Date('2024-11-21'),
-            StartTime: '12:00',
-            EndTime: '18:00',
-            Spot: 'KCG',
-            notice: 3
-        },
-        {
-            Title: 'タスク2',
-            Kind: 'タスク',
-            StartDate: new Date('2024-11-21'),
-            EndDate: new Date('2024-11-28'),
-            StartTime: '23:59',
-            EndTime: '23:59',
-            Spot: 'q',
-            notice: 1
-        },
-        {
-            Title: 'イベント3',
-            Kind: 'イベント',
-            StartDate: new Date('2024-12-01'),
-            EndDate: new Date('2024-12-01'),
-            StartTime: '10:00',
-            EndTime: '17:00',
-            Spot: '京都駅',
-            notice: 24
-        },
-    ]
-
-    // モーダルを開く関数
-    const openModal = (task: Task) => {
-        setSelectedTask(task) // 選択されたタスクを設定
-        setIsModalVisible(true) // モーダルを表示
-    }
-
-    // モーダルを閉じる関数
-    const closeModal = () => {
-        setSelectedTask(null) // 選択タスクをクリア
-        setIsModalVisible(false) // モーダルを非表示
-    }
-
-    // タスクをレンダリングする関数
-    const renderTask = ({ item }: { item: Task }) => (
-        <TouchableOpacity
-            style={styles.selectBox}
-            onPress={() => openModal(item)} // タップでモーダルを開く
-        >
-            <Text>
-                {item.Title} {item.Kind} {'\n'}
-                {item.EndDate.toLocaleDateString('ja-JP')} {item.StartTime} {item.Spot}
-            </Text>
-        </TouchableOpacity>
-    )
-
-    const getNoticeTimeLabel = (notice: number): string => {
-        if (notice < 1) {
-            const minutes = notice * 60
-            return `${minutes} 分前`
-        } else if (notice < 24) {
-            return `${notice} 時間前`
-        } else {
-            const days = notice / 24
-            return `${days} 日前`
-        }
-    }
-
-    const getDate = (StartDate: string,EndDate: string): string => {
-        if(StartDate==EndDate){
-            return StartDate
-        }else{
-            return `${StartDate}-${EndDate}`
-        }
-    }
-    const getTime = (StartTime: string,EndTime: string): string => {
-        if(StartTime==EndTime){
-            return StartTime
-        }else{
-            return `${StartTime}-${EndTime}`
-        }
-    }
-
-
-    // カレンダー用に日付をフォーマット
-    const markedDates = TaskList.reduce((acc, task) => {
-        const dateKey = task.StartDate.toISOString().split('T')[0]
-        acc[dateKey] = { marked: true, dotColor: 'red' } // 赤いドットを表示
-        return acc
-    }, {} as Record<string, any>)
-
-    return (
-        <View>
-            <Text style={styles.TitleText}>タスク一覧</Text>
-            {/* タスクリスト */}
-            <FlatList<Task>
-                data={TaskList}
-                renderItem={renderTask}
-                keyExtractor={(item, index) => `${item.Title}-${index}`} // ユニークキー
-            />
-
-            {/* モーダル */}
-            <Modal
-                visible={isModalVisible}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={closeModal} // Androidバックボタンで閉じる
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>予定詳細</Text>
-                        {selectedTask && (
-                            <>
-                                <Text style={styles.optionText}>タイトル：{selectedTask.Title}</Text>
-                                <Text style={styles.optionText}>種類：{selectedTask.Kind}</Text>
-                                <Text style={styles.optionText}>
-                                    日付：{getDate(selectedTask.StartDate.toLocaleDateString('ja-JP'),selectedTask.EndDate.toLocaleDateString('ja-JP'))}
-                                </Text>
-                                <Text style={styles.optionText}>時刻：{getTime(selectedTask.StartTime,selectedTask.EndTime)}</Text>
-                                 {/* 通知時刻を判別して表示 */}
-                                <Text style={styles.optionText}>
-                                    通知時刻: {getNoticeTimeLabel(selectedTask.notice)}
-                                </Text>
-                                <Text style={styles.optionText}>場所：{selectedTask.Spot}</Text>
-                            </>
-                        )}
-                        <TouchableOpacity
-                            onPress={closeModal}
-                            style={styles.closeButton}
-                        >
-                            <Text style={styles.closeButtonText}>閉じる</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-            {/* カレンダー */}
-            <Calendar
-                style={{ marginTop: 20 }}
-                markingType={'custom'} // カスタムマークを有効にする
-                markedDates={markedDates} // マークされた日付を設定
-            />
-
-            {/* フッターボタン */}
-            <Button
-                title="タスクを追加"
-                onPress={() => navigation.navigate('AddTask')}
-            />
-            <Button title="ホーム" onPress={() => navigation.navigate('Home')} />
-        </View>
-    )
-}
-
-// スタイル定義
-const styles = StyleSheet.create({
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: 300,
-        padding: 20,
-        backgroundColor: 'white',
-        borderRadius: 10,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    optionText: {
-        fontSize: 16,
-    },
-    closeButton: {
-        marginTop: 10,
-        padding: 10,
-        backgroundColor: '#ddd',
-        borderRadius: 5,
-        width: '100%',
-        alignItems: 'center',
-    },
-    closeButtonText: {
-        fontSize: 16,
-        color: 'black',
-    },
-    selectBox: {
-        margin: 12,
-        height: 40,
-        justifyContent: 'center',
-        paddingLeft: 10,
-        borderWidth: 1,
-        borderColor: 'black',
-        backgroundColor: '#f0f0f0',
-    },
-    TitleText: {
-        fontSize: 20, 
-        textAlign:'center', 
-        marginTop:10
-    },
-})
 
 export default ListTask

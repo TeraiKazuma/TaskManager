@@ -105,5 +105,28 @@ def addtask():
         return jsonify({'message': 'トークンの有効期限が切れています'}), 401
     except jwt.InvalidTokenError:
         return jsonify({'message': '無効なトークンです'}), 401
+
+@app.route('/task_list', methods=['GET'])
+def get_tasks():
+    # DB から tasks テーブルの全件を取得
+    tasks = Task.query.all()
     
+    # Python オブジェクトを JSON 形式に変換
+    tasks_data = []
+    for t in tasks:
+        tasks_data.append({
+            'id': t.id,
+            'title': t.title,
+            'kind': t.kind,
+            'startdate': t.startdate.isoformat() if t.startdate else None,
+            'starttime': t.starttime.strftime('%H:%M') if t.starttime else None,
+            'enddate': t.enddate.isoformat() if t.enddate else None,
+            'endtime': t.endtime.strftime('%H:%M') if t.endtime else None,
+            'place': t.place,
+            'notice': t.notice,
+            'url': t.url,
+            'memo': t.memo
+        })
+    
+    return jsonify(tasks_data)
     
