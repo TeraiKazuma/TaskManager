@@ -5,9 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  Button,
   ScrollView,
-  // FlatList  // ← FlatListを使う場合は残す
+  Alert,
+  Linking,
+  Platform
 } from 'react-native'
 import axios from 'axios'
 import dayjs from 'dayjs'
@@ -16,8 +17,9 @@ import { Task } from './components/Task'
 import { CalendarItem } from './components/CalendarItem'
 import { CalendarDayItem } from './components/CalendarDayItem'
 import BACKEND_URL from '../utils/config'
+import { getToken } from '../utils/auth'
 
-const ListTask: React.FC<{ navigation: any }> = ({ navigation }) => {
+const ListTask: React.FC = () => {
   const [taskList, setTaskList] = useState<Task[]>([])
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
@@ -43,6 +45,66 @@ const ListTask: React.FC<{ navigation: any }> = ({ navigation }) => {
       setEventItems(mapData)
     } catch (error) {
       console.error('タスク取得エラー: ', error)
+    }
+  }
+  const deleteTask = async (id: number | undefined) => {
+    try {
+      const confirmDelete = Platform.OS === 'web'
+        ? window.confirm('このタスクを削除しますか？')
+        : await new Promise((resolve) => {
+            Alert.alert(
+              '確認',
+              'このタスクを削除しますか？',
+              [
+                { text: 'キャンセル', onPress: () => resolve(false) },
+                { text: '削除', onPress: () => resolve(true) },
+              ],
+              { cancelable: true }
+            )
+          })
+  
+      if (!confirmDelete) return
+  
+      const token = await getToken()
+      const response = await fetch(`${BACKEND_URL}/delete_task`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id: id }),
+      })
+  
+      const data = await response.json()
+      if (response.ok) {
+        // タスクリストを更新して削除されたタスクを除外
+        setTaskList((prevTaskList) => {
+          const updatedTaskList = prevTaskList.filter((task) => task.id !== id)
+          // カレンダーイベントも更新
+          const updatedEventItems = createEventItems(updatedTaskList)
+          setEventItems(updatedEventItems)
+          return updatedTaskList
+        })
+  
+        // Webでのアラート表示
+        if (Platform.OS === 'web') {
+          window.alert('削除されました: ' + data.message)
+        } else {
+          Alert.alert('削除されました', data.message)
+        }
+  
+        closeModal() // モーダルを閉じる
+      } else {
+        // Webでのアラート表示
+        if (Platform.OS === 'web') {
+          window.alert('削除できませんでした: ' + data.message)
+        } else {
+          Alert.alert('削除できませんでした', data.message)
+        }
+      }
+    } catch (error) {
+      console.error(error)
+      Alert.alert('エラー', 'サーバーに接続できませんでした。')
     }
   }
 
@@ -222,8 +284,30 @@ const ListTask: React.FC<{ navigation: any }> = ({ navigation }) => {
                 <Text style={styles.optionText}>
                   場所: {selectedTask.place}
                 </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (selectedTask.url) {
+                      Linking.openURL(selectedTask.url).catch(err =>
+                        console.error("Failed to open URL:", err)
+                      )
+                    }
+                  }}
+                >
+                  <Text style={styles.optionText}>
+                    URL:
+                  </Text>
+                  <Text style={[styles.optionText, styles.linkText]}>
+                    {selectedTask.url}
+                  </Text>
+                </TouchableOpacity>
               </>
             )}
+            <TouchableOpacity
+              onPress={ ( ) => deleteTask(selectedTask?.id) } 
+              style={styles.closeButton}
+            >
+              <Text style={styles.closeButtonText}>削除</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={closeModal}
               style={styles.closeButton}
@@ -255,17 +339,6 @@ const ListTask: React.FC<{ navigation: any }> = ({ navigation }) => {
         pagingEnabled={true}
       />
 
-      {/* フッターボタン類 */}
-      <View>
-        <Button
-          title="タスクを追加"
-          onPress={() => navigation.navigate('AddTask')}
-        />
-        <Button
-          title="ホーム"
-          onPress={() => navigation.navigate('Home')}
-        />
-      </View>
 
     </ScrollView>
   )
@@ -325,6 +398,10 @@ const styles = StyleSheet.create({
   closeButtonText: {
     fontSize: 16,
     color: 'black',
+  },
+  linkText: {
+    color: 'blue',
+    textDecorationLine: 'underline',
   },
 })
 

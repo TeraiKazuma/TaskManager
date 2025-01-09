@@ -47,8 +47,8 @@ def signup():
 
     return jsonify({'message': '新規登録が完了しました'}), 200
 
-@app.route('/Addtask', methods=['POST'])
-def addtask():
+@app.route('/Add_task', methods=['POST'])
+def add_task():
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         return jsonify({'message': '認証トークンが必要です'}), 401
@@ -129,4 +129,32 @@ def get_tasks():
         })
     
     return jsonify(tasks_data)
+
+@app.route('/delete_task', methods=['POST'])
+def delete_task():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({'message': '認証トークンが必要です'}), 401
+    
+    token = auth_header.split(' ')[1]
+    try:
+        # トークンをデコードし、ユーザidを取得
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        user_id = payload['user_id']
+        data = request.get_json()  # リクエストデータをJSONとして取得
+        # POSTリクエストで指定された削除対象画像名を取得
+        id = data.get('id')
+        if not id:
+            return jsonify({'idがありません'}),403
+        task = Task.query.filter_by(user_id=user_id, id=id).first()
+        
+        if(task):
+            db.session.delete(task)
+            db.session.commit()
+            return jsonify({"message": f"task with ID {Task.id} deleted."}), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'トークンの有効期限が切れています'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'message': '無効なトークンです'}), 401
     

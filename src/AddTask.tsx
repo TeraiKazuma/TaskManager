@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, ScrollView, Text, StyleSheet, TouchableOpacity, Button, TextInput, Platform, Modal, Alert } from 'react-native'
+import { View, ScrollView, Text, StyleSheet, TouchableOpacity, Button, TextInput, Platform, Modal, Alert,KeyboardAvoidingView } from 'react-native'
 import BACKEND_URL from '../utils/config'
 import { getToken } from '../utils/auth'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -135,7 +135,7 @@ const AddTask: React.FC = ({ navigation }: any) => {
     const handleAddTask = async () => {
         try {
             const token = await getToken()
-            const response = await fetch(`${BACKEND_URL}/Addtask`, {
+            const response = await fetch(`${BACKEND_URL}/Add_task`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -152,20 +152,39 @@ const AddTask: React.FC = ({ navigation }: any) => {
                     enddate: endDate.toISOString(),
                 }),
             })
-
+    
             const data = await response.json()
             if (response.ok) {
-                Alert.alert('追加成功', data.message)
+                // Webでのアラート表示
+                if (Platform.OS === 'web') {
+                    window.alert('追加成功: ' + data.message)
+                } else {
+                    Alert.alert('追加成功', data.message)
+                }
+                // 一覧ページに遷移
+                navigation.navigate('ListTask')
             } else {
-                Alert.alert('追加失敗', data.message)
+                // Webでのアラート表示
+                if (Platform.OS === 'web') {
+                    window.alert('追加失敗: ' + data.message)
+                } else {
+                    Alert.alert('追加失敗', data.message)
+                }
             }
         } catch (error) {
             console.error(error)
-            Alert.alert('エラー', 'サーバーに接続できませんでした。')
+            if (Platform.OS === 'web') {
+                window.alert('エラー: サーバーに接続できませんでした。')
+            } else {
+                Alert.alert('エラー', 'サーバーに接続できませんでした。')
+            }
         }
     }
 
     return (
+        <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.container}>
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
             <View style={styles.container}>
                 <Text style={styles.title}>新規予定</Text>
@@ -382,6 +401,7 @@ const AddTask: React.FC = ({ navigation }: any) => {
                 </View>
             </View>
         </ScrollView>
+        </KeyboardAvoidingView>
     )
 }
 

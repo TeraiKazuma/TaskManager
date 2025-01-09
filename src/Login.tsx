@@ -33,7 +33,7 @@ const Login: React.FC<LoginProps> = ({navigation, setIsLoggedIn} :any) => {
                 await saveToken(data.token) // トークンを保存
                 Alert.alert('ログイン成功', data.message)
                 setIsLoggedIn(true) // ログイン状態を更新
-                navigation.navigate('Home')
+                navigation.navigate('MainTabs')
             } else {
                 Alert.alert('ログイン失敗', data.message || 'ユーザー名またはパスワードが間違っています。')
             }
