@@ -1,34 +1,30 @@
-// ListTask.tsx
 import React, { useEffect, useState } from 'react'
-import { View } from 'react-native'
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  Button,
+  ScrollView,
+  // FlatList  // ← FlatListを使う場合は残す
+} from 'react-native'
 import axios from 'axios'
 import dayjs from 'dayjs'
 import { CalendarList, LocaleConfig } from 'react-native-calendars'
-
-// 他ファイルからインポート
 import { Task } from './components/Task'
 import { CalendarItem } from './components/CalendarItem'
 import { CalendarDayItem } from './components/CalendarDayItem'
+import BACKEND_URL from '../utils/config'
 
-/**
- * Flaskサーバーの URL
- * （シミュレータ使用時に合わせて '10.0.2.2:5000' などに変更することも）
- */
-const BACKEND_URL = 'http://127.0.0.1:5000'
-
-// -----------------------
-// メイン画面コンポーネント
-// -----------------------
-const ListTask: React.FC = () => {
-  // 取得したタスク一覧
-  const[, setTaskList] = useState<Task[]>([])
-
-  // カレンダーに描画するイベントバー一覧 (日付ごとにまとめたMap)
+const ListTask: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const [taskList, setTaskList] = useState<Task[]>([])
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [isModalVisible, setIsModalVisible] = useState(false)
   const [eventItems, setEventItems] = useState<Map<string, CalendarItem[]>>(
     new Map()
   )
 
-  // マウント時にタスクを取得
   useEffect(() => {
     fetchTasks()
   }, [])
@@ -39,17 +35,53 @@ const ListTask: React.FC = () => {
   const fetchTasks = async () => {
     try {
       const response = await axios.get<Task[]>(`${BACKEND_URL}/task_list`)
-      const tasks = response.data // [ { id, title, ... }, {...}, ... ]
-
+      const tasks = response.data
       setTaskList(tasks)
 
       // タスク一覧をカレンダー用のイベントバーMapに変換
       const mapData = createEventItems(tasks)
       setEventItems(mapData)
-
     } catch (error) {
       console.error('タスク取得エラー: ', error)
     }
+  }
+
+  // モーダルを開く/閉じる
+  const openModal = (task: Task) => {
+    setSelectedTask(task)
+    setIsModalVisible(true)
+  }
+  const closeModal = () => {
+    setSelectedTask(null)
+    setIsModalVisible(false)
+  }
+
+  // -----------------------
+  // 日付・時刻表示など
+  // -----------------------
+  const getNoticeTimeLabel = (notice: number): string => {
+    if (notice < 60) {
+      const minutes = notice
+      return `${minutes} 分前`
+    } else if (notice < 1440) {
+      const hour = notice/60
+      return `${hour} 時間前`
+    } else {
+      const days = notice /1440
+      return `${days} 日前`
+    }
+  }
+  const getDate = (startDate: string, endDate: string): string => {
+    if (startDate === endDate) {
+      return startDate
+    }
+    return `${startDate} - ${endDate}`
+  }
+  const getTime = (startTime: string, endTime: string): string => {
+    if (startTime === endTime) {
+      return startTime
+    }
+    return `${startTime} - ${endTime}`
   }
 
   // -----------------------
@@ -59,22 +91,16 @@ const ListTask: React.FC = () => {
     const result = new Map<string, CalendarItem[]>()
 
     tasks.forEach((task) => {
-      // 例: "2025-01-10" → dayjs("2025-01-10")
       const start = dayjs(task.startdate)
-      const end   = dayjs(task.enddate)
-
-      // バーの色(例として固定)
-      // kind ごとに変えたり、idごとに変えたりしてもOK
+      const end = dayjs(task.enddate)
       const color = '#87CEEB'
-
-      // 開始日～終了日までの日数
       const diffDays = end.diff(start, 'day') + 1
 
       if (diffDays <= 1) {
         // 同一日
         const key = start.format('YYYY-MM-DD')
         const arr = result.get(key) ?? []
-        const newIndex = arr.length // 同日内の既存件数を index に
+        const newIndex = arr.length
 
         arr.push({
           id: String(task.id),
@@ -83,24 +109,19 @@ const ListTask: React.FC = () => {
           text: task.title,
           type: 'all',
         })
-
         result.set(key, arr)
-
       } else {
-        // 複数日にまたがる場合
+        // 複数日にまたがる
         let fixedIndex: number | null = null
-
         for (let i = 0; i < diffDays; i++) {
           const currentDay = start.add(i, 'day')
           const key = currentDay.format('YYYY-MM-DD')
           const arr = result.get(key) ?? []
 
-          // 同じ連続予定は同じ index で縦に並べる
           if (fixedIndex === null) {
             fixedIndex = arr.length
           }
 
-          // 開始日or終了日or中間かで type を分ける
           let eventType: CalendarItem['type'] = 'between'
           if (i === 0) {
             eventType = 'start'
@@ -115,7 +136,6 @@ const ListTask: React.FC = () => {
             text: task.title,
             type: eventType,
           })
-
           result.set(key, arr)
         }
       }
@@ -143,21 +163,85 @@ const ListTask: React.FC = () => {
   }
   LocaleConfig.defaultLocale = 'jp'
 
-  // 日付セルの最低高さ
-  const cellMinHeight = 80
-
   // -----------------------
   // レンダリング
   // -----------------------
   return (
-    <View style={{ flex: 1 }}>
+    // ScrollView で全体をラップ
+    <ScrollView style={styles.container}>
+
+      {/* タイトル */}
+      <Text style={styles.TitleText}>タスク一覧</Text>
+
+      {/* 
+        例: FlatList をやめてシンプルにループ表示する。
+        もしどうしても FlatList を使いたい場合は
+        「外側のScrollViewを無くし → Viewで flex分割 → FlatListに固定height」
+        などのレイアウト調整が必要になるケースが多いです。
+      */}
+      {taskList.map((item) => (
+        <TouchableOpacity
+          key={item.id}
+          style={styles.selectBox}
+          onPress={() => openModal(item)}
+        >
+          <Text>
+            {item.title} {item.kind}{'\n'}
+            {item.enddate} {item.starttime} {item.place}
+          </Text>
+        </TouchableOpacity>
+      ))}
+
+      {/* 詳細モーダル */}
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>予定詳細</Text>
+            {selectedTask && (
+              <>
+                <Text style={styles.optionText}>
+                  タイトル: {selectedTask.title}
+                </Text>
+                <Text style={styles.optionText}>
+                  種類: {selectedTask.kind}
+                </Text>
+                <Text style={styles.optionText}>
+                  日付: {getDate(selectedTask.startdate, selectedTask.enddate)}
+                </Text>
+                <Text style={styles.optionText}>
+                  時刻: {getTime(selectedTask.starttime, selectedTask.endtime)}
+                </Text>
+                <Text style={styles.optionText}>
+                  通知時刻: {getNoticeTimeLabel(selectedTask.notice)}
+                </Text>
+                <Text style={styles.optionText}>
+                  場所: {selectedTask.place}
+                </Text>
+              </>
+            )}
+            <TouchableOpacity
+              onPress={closeModal}
+              style={styles.closeButton}
+            >
+              <Text style={styles.closeButtonText}>閉じる</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* カレンダー */}
       <CalendarList
-        // dayComponent に独自コンポーネントを指定し、eventItemsを渡す
+        style={styles.calendar}
         dayComponent={(dayProps) => (
           <CalendarDayItem
             {...dayProps}
             eventItems={eventItems}
-            cellMinHeight={cellMinHeight}
+            cellMinHeight={80}
           />
         )}
         pastScrollRange={12}
@@ -170,8 +254,78 @@ const ListTask: React.FC = () => {
         hideArrows={false}
         pagingEnabled={true}
       />
-    </View>
+
+      {/* フッターボタン類 */}
+      <View>
+        <Button
+          title="タスクを追加"
+          onPress={() => navigation.navigate('AddTask')}
+        />
+        <Button
+          title="ホーム"
+          onPress={() => navigation.navigate('Home')}
+        />
+      </View>
+
+    </ScrollView>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  TitleText: {
+    fontSize: 20,
+    textAlign: 'center',
+    marginTop: 10
+  },
+  selectBox: {
+    margin: 12,
+    minHeight: 40,
+    justifyContent: 'center',
+    paddingLeft: 10,
+    borderWidth: 1,
+    borderColor: 'black',
+    backgroundColor: '#f0f0f0',
+  },
+  // カレンダーの不要な余白を消すために marginTop: 0 などを指定
+  calendar: {
+    marginTop: 0,
+    paddingTop: 0,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: 300,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  optionText: {
+    fontSize: 16,
+  },
+  closeButton: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#ddd',
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontSize: 16,
+    color: 'black',
+  },
+})
 
 export default ListTask

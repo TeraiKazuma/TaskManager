@@ -8,3 +8,7 @@ cmdで　install expo
 3.'npx expo start'でexpoを実行
 4.webの場合：wと入力
   ios+androidの場合：expogo（アプリ）をインストール→同じwifi下でQRコード読み取る
+  ※webで使用する場合は開発者ツールから
+  body {
+    overflow: hidden;　←このチェックを外してください。スクロールできない状態になっています。
+  }

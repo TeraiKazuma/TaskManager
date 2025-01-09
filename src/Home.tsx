@@ -7,10 +7,12 @@ type HomeProps = {
 };
 
 const Home: React.FC<HomeProps> = ({navigation} :any)=>{
+    //ログアウト処理
     const handleLogout = async () => {
         await removeToken() // トークンを削除
         navigation.replace('Login')// ログイン画面に戻る
     }
+    
     return(
         <View style={styles.container}>
             <Button title="タスクを追加" onPress={() => navigation.navigate('AddTask')}></Button>

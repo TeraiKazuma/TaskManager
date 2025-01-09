@@ -4,11 +4,6 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import type { DateData } from 'react-native-calendars'
 import { CalendarItem } from './CalendarItem'
 
-/**
- * dayComponent 用に自作した型。
- * バージョンによって 'dayProps' (DayProps) が無い場合を想定し、
- * 受け取りそうなものを独自定義する。
- */
 export type MyDayProps = {
   date?: DateData;   // { year, month, day, dateString }
   // state に "inactive" 等が来る場合もあるので含める
