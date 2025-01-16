@@ -12,3 +12,8 @@ cmdで　install expo
   body {
     overflow: hidden;　←このチェックを外してください。スクロールできない状態になっています。
   }
+
+# エラー
+C:\TaskManager\node_modules\expo-notifications\build\Notifications.types.d.ts:337
+type?: SchedulableTriggerInputTypes.TIME_INTERVAL;
+ここで型エラー

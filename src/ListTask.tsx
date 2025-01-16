@@ -1,5 +1,5 @@
 // ListTask.tsx
-// 登録したタスクの一覧・カレンダー表示を行う画面
+// 登録したタスクの一覧表示を行う画面
 
 import React, { useEffect, useState } from 'react'
 import {
@@ -14,11 +14,7 @@ import {
   Platform
 } from 'react-native'
 import axios from 'axios'
-import dayjs from 'dayjs'
-import { CalendarList, LocaleConfig } from 'react-native-calendars'
 import { Task } from './components/Task'
-import { CalendarItem } from './components/CalendarItem'
-import { CalendarDayItem } from './components/CalendarDayItem'
 import BACKEND_URL from '../utils/config'
 import { getToken } from '../utils/auth'
 
@@ -26,9 +22,6 @@ const ListTask: React.FC = () => {
   const [taskList, setTaskList] = useState<Task[]>([])
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
-  const [eventItems, setEventItems] = useState<Map<string, CalendarItem[]>>(
-    new Map()
-  )
 
   // 初期表示時にタスク一覧を取得
   useEffect(() => {
@@ -41,10 +34,6 @@ const ListTask: React.FC = () => {
       const response = await axios.get<Task[]>(`${BACKEND_URL}/task_list`)
       const tasks = response.data
       setTaskList(tasks)
-
-      // タスク一覧をカレンダー用のタスクバーMapに変換
-      const mapData = createEventItems(tasks)
-      setEventItems(mapData)
     } catch (error) {
       console.error('タスク取得エラー: ', error)
     }
@@ -85,11 +74,7 @@ const ListTask: React.FC = () => {
       if (response.ok) {
         // タスクリストを更新（削除したものを除外）
         setTaskList((prevTaskList) => {
-          const updatedTaskList = prevTaskList.filter((task) => task.id !== id)
-          // カレンダーのイベント用Mapを再生成
-          const updatedEventItems = createEventItems(updatedTaskList)
-          setEventItems(updatedEventItems)
-          return updatedTaskList
+          return prevTaskList.filter((task) => task.id !== id)
         })
   
         // 削除成功メッセージ
@@ -132,10 +117,10 @@ const ListTask: React.FC = () => {
       const minutes = notice
       return `${minutes} 分前`
     } else if (notice < 1440) {
-      const hour = notice/60
+      const hour = notice / 60
       return `${hour} 時間前`
     } else {
-      const days = notice /1440
+      const days = notice / 1440
       return `${days} 日前`
     }
   }
@@ -155,107 +140,41 @@ const ListTask: React.FC = () => {
   }
 
   // -----------------------
-  // Task[] → eventItems(Map) に変換
-  // -----------------------
-  const createEventItems = (tasks: Task[]): Map<string, CalendarItem[]> => {
-    const result = new Map<string, CalendarItem[]>()
-
-    tasks.forEach((task) => {
-      const start = dayjs(task.startdate)
-      const end = dayjs(task.enddate)
-      const color = '#87CEEB'
-      const diffDays = end.diff(start, 'day') + 1
-
-      if (diffDays <= 1) {
-        // 同一日
-        const key = start.format('YYYY-MM-DD')
-        const arr = result.get(key) ?? []
-        const newIndex = arr.length
-
-        arr.push({
-          id: String(task.id),
-          index: newIndex,
-          color,
-          text: task.title,
-          type: 'all',
-        })
-        result.set(key, arr)
-      } else {
-        // 複数日にまたがる場合
-        let fixedIndex: number | null = null
-        for (let i = 0; i < diffDays; i++) {
-          const currentDay = start.add(i, 'day')
-          const key = currentDay.format('YYYY-MM-DD')
-          const arr = result.get(key) ?? []
-
-          if (fixedIndex === null) {
-            fixedIndex = arr.length
-          }
-
-          let eventType: CalendarItem['type'] = 'between'
-          if (i === 0) {
-            eventType = 'start'
-          } else if (i === diffDays - 1) {
-            eventType = 'end'
-          }
-
-          arr.push({
-            id: String(task.id),
-            index: fixedIndex,
-            color,
-            text: task.title,
-            type: eventType,
-          })
-          result.set(key, arr)
-        }
-      }
-    })
-
-    return result
-  }
-
-  // -----------------------
-  // カレンダーの日本語設定
-  // -----------------------
-  LocaleConfig.locales.jp = {
-    monthNames: [
-      '1月','2月','3月','4月','5月','6月',
-      '7月','8月','9月','10月','11月','12月'
-    ],
-    monthNamesShort: [
-      '1月','2月','3月','4月','5月','6月',
-      '7月','8月','9月','10月','11月','12月'
-    ],
-    dayNames: [
-      '日曜日','月曜日','火曜日','水曜日','木曜日','金曜日','土曜日'
-    ],
-    dayNamesShort: ['日','月','火','水','木','金','土'],
-  }
-  LocaleConfig.defaultLocale = 'jp'
-
-  // -----------------------
   // レンダリング
   // -----------------------
   return (
-    // ScrollView で全体をラップ
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
+      {/* タイトルエリアを少し装飾 */}
+      <View style={styles.headerContainer}>
+        <Text style={styles.TitleText}>タスク一覧</Text>
+      </View>
 
-      {/* タイトル */}
-      <Text style={styles.TitleText}>タスク一覧</Text>
-
-      {/* タスク一覧表示 */}
-      {taskList.map((item) => (
-        <TouchableOpacity
-          key={item.id}
-          style={styles.selectBox}
-          onPress={() => openModal(item)}
-        >
-          <Text>
-            {item.title} {item.kind}{'\n'}
-            {item.enddate} {item.starttime} {item.place}
-          </Text>
-        </TouchableOpacity>
-      ))}
+      <ScrollView style={styles.scrollInner}>
+        {/* タスク一覧表示 */}
+        {taskList.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.selectBox}
+            onPress={() => openModal(item)}
+          >
+            <Text style={styles.taskTitle}>
+              {item.title}
+            </Text>
+            <Text style={styles.taskDetail}>
+              種類: {item.kind}
+            </Text>
+            <Text style={styles.taskDetail}>
+              日付: {item.enddate}
+            </Text>
+            <Text style={styles.taskDetail}>
+              時刻: {item.starttime}
+            </Text>
+            <Text style={styles.taskDetail}>
+              場所: {item.place}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
       {/* 詳細表示モーダル */}
       <Modal
@@ -287,7 +206,9 @@ const ListTask: React.FC = () => {
                 <Text style={styles.optionText}>
                   場所: {selectedTask.place}
                 </Text>
-                <TouchableOpacity
+                {/* URL */}
+                {selectedTask.url ? (
+                  <TouchableOpacity
                   onPress={() => {
                     if (selectedTask.url) {
                       Linking.openURL(selectedTask.url).catch(err =>
@@ -296,108 +217,122 @@ const ListTask: React.FC = () => {
                     }
                   }}
                 >
-                  <Text style={styles.optionText}>
-                    URL:
-                  </Text>
+                  <Text style={styles.optionText}>URL:</Text>
                   <Text style={[styles.optionText, styles.linkText]}>
                     {selectedTask.url}
                   </Text>
                 </TouchableOpacity>
+                ) : null}
               </>
             )}
-            <TouchableOpacity
-              onPress={ ( ) => deleteTask(selectedTask?.id) } 
-              style={styles.closeButton}
-            >
-              <Text style={styles.closeButtonText}>削除</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={closeModal}
-              style={styles.closeButton}
-            >
-              <Text style={styles.closeButtonText}>閉じる</Text>
-            </TouchableOpacity>
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity
+                onPress={() => deleteTask(selectedTask?.id)}
+                style={[styles.closeButton, { backgroundColor: '#f08080' }]}
+              >
+                <Text style={styles.closeButtonText}>削除</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={closeModal}
+                style={[styles.closeButton, { backgroundColor: '#999' }]}
+              >
+                <Text style={styles.closeButtonText}>閉じる</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
-
-      {/* カレンダー表示 (horizontalスワイプ可) */}
-      <CalendarList
-        style={styles.calendar}
-        dayComponent={(dayProps) => (
-          <CalendarDayItem
-            {...dayProps}
-            eventItems={eventItems}
-            cellMinHeight={80}
-          />
-        )}
-        pastScrollRange={12}
-        futureScrollRange={12}
-        firstDay={1}             // 週の開始を月曜日に
-        showSixWeeks={true}
-        hideExtraDays={false}
-        monthFormat="yyyy年 M月"
-        horizontal={true}
-        hideArrows={false}
-        pagingEnabled={true}
-      />
-    </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f3f3f3',
+  },
+  headerContainer: {
+    backgroundColor: '#87CEEB',
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
   },
   TitleText: {
-    fontSize: 20,
-    textAlign: 'center',
-    marginTop: 10
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  scrollInner: {
+    flex: 1,
   },
   selectBox: {
-    margin: 12,
-    minHeight: 40,
-    justifyContent: 'center',
-    paddingLeft: 10,
-    borderWidth: 1,
-    borderColor: 'black',
-    backgroundColor: '#f0f0f0',
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    // カードっぽい影
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2, // Android用
   },
-  calendar: {
-    marginTop: 0,
-    paddingTop: 0,
+  taskTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 6,
+    color: '#333',
+  },
+  taskDetail: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
   modalContent: {
-    width: 300,
-    padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     borderRadius: 10,
+    padding: 20,
+    // カードっぽい影
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5, // Android用
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 12,
+    color: '#333',
   },
   optionText: {
     fontSize: 16,
+    color: '#444',
+    marginBottom: 4,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    marginTop: 16,
+    justifyContent: 'flex-end',
   },
   closeButton: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#ddd',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 5,
-    width: '100%',
-    alignItems: 'center',
+    marginLeft: 8,
   },
   closeButtonText: {
+    color: 'white',
     fontSize: 16,
-    color: 'black',
+    fontWeight: 'bold',
   },
   linkText: {
     color: 'blue',
