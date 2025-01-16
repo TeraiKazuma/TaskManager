@@ -1,3 +1,6 @@
+// ListTask.tsx
+// 登録したタスクの一覧・カレンダー表示を行う画面
+
 import React, { useEffect, useState } from 'react'
 import {
   View,
@@ -27,28 +30,30 @@ const ListTask: React.FC = () => {
     new Map()
   )
 
+  // 初期表示時にタスク一覧を取得
   useEffect(() => {
     fetchTasks()
   }, [])
 
-  // -----------------------
-  // Pythonサーバーからタスク一覧をGET
-  // -----------------------
+  // サーバーからタスク一覧を取得
   const fetchTasks = async () => {
     try {
       const response = await axios.get<Task[]>(`${BACKEND_URL}/task_list`)
       const tasks = response.data
       setTaskList(tasks)
 
-      // タスク一覧をカレンダー用のイベントバーMapに変換
+      // タスク一覧をカレンダー用のタスクバーMapに変換
       const mapData = createEventItems(tasks)
       setEventItems(mapData)
     } catch (error) {
       console.error('タスク取得エラー: ', error)
     }
   }
+
+  // タスク削除処理
   const deleteTask = async (id: number | undefined) => {
     try {
+      // 削除確認ダイアログ
       const confirmDelete = Platform.OS === 'web'
         ? window.confirm('このタスクを削除しますか？')
         : await new Promise((resolve) => {
@@ -65,6 +70,7 @@ const ListTask: React.FC = () => {
   
       if (!confirmDelete) return
   
+      // トークン取得
       const token = await getToken()
       const response = await fetch(`${BACKEND_URL}/delete_task`, {
         method: 'POST',
@@ -77,25 +83,25 @@ const ListTask: React.FC = () => {
   
       const data = await response.json()
       if (response.ok) {
-        // タスクリストを更新して削除されたタスクを除外
+        // タスクリストを更新（削除したものを除外）
         setTaskList((prevTaskList) => {
           const updatedTaskList = prevTaskList.filter((task) => task.id !== id)
-          // カレンダーイベントも更新
+          // カレンダーのイベント用Mapを再生成
           const updatedEventItems = createEventItems(updatedTaskList)
           setEventItems(updatedEventItems)
           return updatedTaskList
         })
   
-        // Webでのアラート表示
+        // 削除成功メッセージ
         if (Platform.OS === 'web') {
           window.alert('削除されました: ' + data.message)
         } else {
           Alert.alert('削除されました', data.message)
         }
   
-        closeModal() // モーダルを閉じる
+        closeModal()
       } else {
-        // Webでのアラート表示
+        // 削除失敗メッセージ
         if (Platform.OS === 'web') {
           window.alert('削除できませんでした: ' + data.message)
         } else {
@@ -108,7 +114,7 @@ const ListTask: React.FC = () => {
     }
   }
 
-  // モーダルを開く/閉じる
+  // モーダルの開閉
   const openModal = (task: Task) => {
     setSelectedTask(task)
     setIsModalVisible(true)
@@ -119,7 +125,7 @@ const ListTask: React.FC = () => {
   }
 
   // -----------------------
-  // 日付・時刻表示など
+  // 日付・時刻表示
   // -----------------------
   const getNoticeTimeLabel = (notice: number): string => {
     if (notice < 60) {
@@ -133,12 +139,14 @@ const ListTask: React.FC = () => {
       return `${days} 日前`
     }
   }
+
   const getDate = (startDate: string, endDate: string): string => {
     if (startDate === endDate) {
       return startDate
     }
     return `${startDate} - ${endDate}`
   }
+
   const getTime = (startTime: string, endTime: string): string => {
     if (startTime === endTime) {
       return startTime
@@ -173,7 +181,7 @@ const ListTask: React.FC = () => {
         })
         result.set(key, arr)
       } else {
-        // 複数日にまたがる
+        // 複数日にまたがる場合
         let fixedIndex: number | null = null
         for (let i = 0; i < diffDays; i++) {
           const currentDay = start.add(i, 'day')
@@ -235,12 +243,7 @@ const ListTask: React.FC = () => {
       {/* タイトル */}
       <Text style={styles.TitleText}>タスク一覧</Text>
 
-      {/* 
-        例: FlatList をやめてシンプルにループ表示する。
-        もしどうしても FlatList を使いたい場合は
-        「外側のScrollViewを無くし → Viewで flex分割 → FlatListに固定height」
-        などのレイアウト調整が必要になるケースが多いです。
-      */}
+      {/* タスク一覧表示 */}
       {taskList.map((item) => (
         <TouchableOpacity
           key={item.id}
@@ -254,7 +257,7 @@ const ListTask: React.FC = () => {
         </TouchableOpacity>
       ))}
 
-      {/* 詳細モーダル */}
+      {/* 詳細表示モーダル */}
       <Modal
         visible={isModalVisible}
         transparent={true}
@@ -318,7 +321,7 @@ const ListTask: React.FC = () => {
         </View>
       </Modal>
 
-      {/* カレンダー */}
+      {/* カレンダー表示 (horizontalスワイプ可) */}
       <CalendarList
         style={styles.calendar}
         dayComponent={(dayProps) => (
@@ -330,7 +333,7 @@ const ListTask: React.FC = () => {
         )}
         pastScrollRange={12}
         futureScrollRange={12}
-        firstDay={1}
+        firstDay={1}             // 週の開始を月曜日に
         showSixWeeks={true}
         hideExtraDays={false}
         monthFormat="yyyy年 M月"
@@ -338,8 +341,6 @@ const ListTask: React.FC = () => {
         hideArrows={false}
         pagingEnabled={true}
       />
-
-
     </ScrollView>
   )
 }
@@ -362,7 +363,6 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     backgroundColor: '#f0f0f0',
   },
-  // カレンダーの不要な余白を消すために marginTop: 0 などを指定
   calendar: {
     marginTop: 0,
     paddingTop: 0,

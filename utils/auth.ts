@@ -1,8 +1,10 @@
+// auth.ts
+// トークンの永続化に AsyncStorage を使うためのラッパ関数たち。
+// 他の画面でトークン保存・取得・削除処理をまとめて呼び出せるようにしている。
+
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-/**
- * トークンを保存する関数
- */
+//トークンを保存する関数
 export const saveToken = async (token: string): Promise<void> => {
   try {
     await AsyncStorage.setItem('authToken', token)
@@ -11,9 +13,7 @@ export const saveToken = async (token: string): Promise<void> => {
   }
 }
 
-/**
- * トークンを取得する関数
- */
+//トークンを取得する関数
 export const getToken = async (): Promise<string | null> => {
   try {
     return await AsyncStorage.getItem('authToken')
@@ -23,9 +23,7 @@ export const getToken = async (): Promise<string | null> => {
   }
 }
 
-/**
- * トークンを削除する関数
- */
+//トークンを削除する関数
 export const removeToken = async (): Promise<void> => {
   try {
     await AsyncStorage.removeItem('authToken')

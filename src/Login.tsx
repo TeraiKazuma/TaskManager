@@ -1,3 +1,8 @@
+// Login.tsx
+// ログイン画面
+// ユーザー名とパスワードを入力し、サーバーにPOSTして認証トークンを受け取る。
+// トークンをAsyncStorageに保存してログイン済み状態とする例。
+
 import React, { useState } from 'react'
 import BACKEND_URL from '../utils/config'
 import {View, KeyboardAvoidingView, TextInput, StyleSheet, Text,
@@ -13,6 +18,7 @@ const Login: React.FC<LoginProps> = ({navigation, setIsLoggedIn} :any) => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
 
+    // ログインボタンクリック時
     const handleLogin = async () => {
         if (!username || !password) {
             Alert.alert('エラー', 'ユーザー名とパスワードを入力してください')
@@ -30,11 +36,13 @@ const Login: React.FC<LoginProps> = ({navigation, setIsLoggedIn} :any) => {
             const data = await response.json()
 
             if (response.ok) {
-                await saveToken(data.token) // トークンを保存
+                // ログイン成功 → トークン保存
+                await saveToken(data.token)
                 Alert.alert('ログイン成功', data.message)
                 setIsLoggedIn(true) // ログイン状態を更新
                 navigation.navigate('MainTabs')
             } else {
+                // ログイン失敗
                 Alert.alert('ログイン失敗', data.message || 'ユーザー名またはパスワードが間違っています。')
             }
         } catch (error) {

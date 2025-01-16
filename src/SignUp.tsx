@@ -1,12 +1,18 @@
+// SignUp.tsx
+// 新規登録画面
+// ユーザー名とパスワードを入力し、サーバーに送信する
+// 成功すればログイン画面へ遷移
+
 import React, { useState } from 'react'
 import BACKEND_URL from '../utils/config'
 import {View,KeyboardAvoidingView,TextInput,StyleSheet,Text,Platform,Button,Alert
 } from 'react-native'
 
-
 const Signup = ({navigation} :any) => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
+
+    // 登録ボタンクリック時
     const handleSignup = async () => {
         try {
             const response = await fetch(`${BACKEND_URL}/Signup`, {
