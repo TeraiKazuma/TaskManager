@@ -3,8 +3,8 @@
 # dependencies
 node_modules/
 
-/utils/config.ts
-/config.py
+utils/config.ts
+config.py
 
 # Expo
 .expo/
