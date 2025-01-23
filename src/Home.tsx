@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   topContainer: {
-    flex: 1,
+    //flex: 1,
     flexDirection: 'row',
     padding: 10,
   },
@@ -485,6 +485,7 @@ const styles = StyleSheet.create({
   },
   calendar: {
     // 下段カレンダー
+    height: 600,
   },
 
   modalContainer: {
