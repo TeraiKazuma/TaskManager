@@ -478,9 +478,6 @@ const AddTask: React.FC = ({ navigation }: any) => {
           <View style={styles.buttonContainer}>
             <Button title="タスクを追加" onPress={handleAddTask} />
           </View>
-          <View style={styles.buttonContainer}>
-            <Button title="一覧へ" onPress={() => navigation.navigate('ListTask')} />
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

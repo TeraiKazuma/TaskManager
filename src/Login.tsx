@@ -21,7 +21,11 @@ const Login: React.FC<LoginProps> = ({navigation, setIsLoggedIn} :any) => {
     // ログインボタンクリック時
     const handleLogin = async () => {
         if (!username || !password) {
-            Alert.alert('エラー', 'ユーザー名とパスワードを入力してください')
+            if (Platform.OS === 'web') {
+                window.alert('エラー'+ 'ユーザー名とパスワードを入力してください')
+            } else {
+                Alert.alert('エラー', 'ユーザー名とパスワードを入力してください')
+            }
             return
         }
         try {
@@ -38,16 +42,29 @@ const Login: React.FC<LoginProps> = ({navigation, setIsLoggedIn} :any) => {
             if (response.ok) {
                 // ログイン成功 → トークン保存
                 await saveToken(data.token)
-                Alert.alert('ログイン成功', data.message)
+                if (Platform.OS === 'web') {
+                    window.alert('ログイン成功'+ data.message)
+                } else {
+                    Alert.alert('ログイン成功', data.message)
+                }
+                
                 setIsLoggedIn(true) // ログイン状態を更新
                 navigation.navigate('MainTabs')
             } else {
                 // ログイン失敗
-                Alert.alert('ログイン失敗', data.message || 'ユーザー名またはパスワードが間違っています。')
+                if (Platform.OS === 'web') {
+                    window.alert('ログイン失敗'+ data.message || 'ユーザー名またはパスワードが間違っています。')
+                } else {
+                    Alert.alert('ログイン失敗', data.message || 'ユーザー名またはパスワードが間違っています。')
+                }
             }
         } catch (error) {
             console.error(error)
-            Alert.alert('エラー', 'サーバーに接続できませんでした。')
+            if (Platform.OS === 'web') {
+                window.alert('エラー'+ 'サーバーに接続できませんでした。')
+            } else {
+                Alert.alert('エラー', 'サーバーに接続できませんでした。')
+            }
         }
     }
 

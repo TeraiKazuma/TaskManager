@@ -28,15 +28,27 @@ const Signup = ({navigation} :any) => {
     
             if (response.ok) {
                 const result = await response.json()
-                Alert.alert('成功', result.message)
+                if (Platform.OS === 'web') {
+                    window.alert('成功'+ result.message)
+                } else {
+                    Alert.alert('成功', result.message)
+                }
                 navigation.navigate('Login')// ログイン画面に遷移
             } else {
                 const error = await response.json()
-                Alert.alert('エラー', error.message || '登録に失敗しました')
+                if (Platform.OS === 'web') {
+                    window.alert('エラー'+ error.message || '登録に失敗しました')
+                } else {
+                    Alert.alert('エラー', error.message || '登録に失敗しました')
+                }
             }
         } catch (error) {
             console.error(error)
-            Alert.alert('エラー', 'サーバーに接続できませんでした')
+            if (Platform.OS === 'web') {
+                window.alert('エラー'+ 'サーバーに接続できませんでした')
+            } else {
+                Alert.alert('エラー', 'サーバーに接続できませんでした')
+            }
         }
     }
     return(

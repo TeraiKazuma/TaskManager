@@ -31,7 +31,18 @@ const ListTask: React.FC = () => {
   // サーバーからタスク一覧を取得
   const fetchTasks = async () => {
     try {
-      const response = await axios.get<Task[]>(`${BACKEND_URL}/task_list`)
+      const token = await getToken() // トークンを取得
+      if (!token) {
+        console.error('認証トークンが取得できませんでした')
+        return
+      }
+  
+      const response = await axios.get<Task[]>(`${BACKEND_URL}/task_list`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // トークンを送信
+        },
+      })
+  
       const tasks = response.data
       setTaskList(tasks)
     } catch (error) {
@@ -223,6 +234,9 @@ const ListTask: React.FC = () => {
                   </Text>
                 </TouchableOpacity>
                 ) : null}
+                <Text style={styles.optionText}>
+                  メモ: {selectedTask.memo}
+                </Text>
               </>
             )}
             <View style={styles.modalButtonContainer}>

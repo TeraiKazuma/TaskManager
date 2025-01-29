@@ -10,8 +10,6 @@ const Setting = ({navigation} :any)=>{
     }
     return(
         <View>
-            <Button title="ホーム" onPress={() => navigation.navigate('Home')}/>
-            <Button title="テスト" onPress={() => navigation.navigate('test')}/>
             <Button title="ログアウト" onPress={handleLogout} />
         </View>
 

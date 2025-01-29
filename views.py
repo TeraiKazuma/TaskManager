@@ -106,29 +106,45 @@ def add_task():
     except jwt.InvalidTokenError:
         return jsonify({'message': '無効なトークンです'}), 401
 
+
 @app.route('/task_list', methods=['GET'])
 def get_tasks():
-    # DB から tasks テーブルの全件を取得
-    tasks = Task.query.all()
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({'message': '認証トークンが必要です'}), 401
     
-    # Python オブジェクトを JSON 形式に変換
-    tasks_data = []
-    for t in tasks:
-        tasks_data.append({
-            'id': t.id,
-            'title': t.title,
-            'kind': t.kind,
-            'startdate': t.startdate.isoformat() if t.startdate else None,
-            'starttime': t.starttime.strftime('%H:%M') if t.starttime else None,
-            'enddate': t.enddate.isoformat() if t.enddate else None,
-            'endtime': t.endtime.strftime('%H:%M') if t.endtime else None,
-            'place': t.place,
-            'notice': t.notice,
-            'url': t.url,
-            'memo': t.memo
-        })
-    
-    return jsonify(tasks_data)
+    token = auth_header.split(' ')[1]
+    try:
+        # トークンをデコードして user_id を取得
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        user_id = payload['user_id']
+
+        # 現在のユーザーのタスクのみを取得
+        tasks = Task.query.filter_by(user_id=user_id).all()
+        
+        tasks_data = []
+        for t in tasks:
+            tasks_data.append({
+                'id': t.id,
+                'title': t.title,
+                'kind': t.kind,
+                'startdate': t.startdate.isoformat() if t.startdate else None,
+                'starttime': t.starttime.strftime('%H:%M') if t.starttime else None,
+                'enddate': t.enddate.isoformat() if t.enddate else None,
+                'endtime': t.endtime.strftime('%H:%M') if t.endtime else None,
+                'place': t.place,
+                'notice': t.notice,
+                'url': t.url,
+                'memo': t.memo
+            })
+        
+        return jsonify(tasks_data)
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'トークンの有効期限が切れています'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'message': '無効なトークンです'}), 401
+
 
 @app.route('/delete_task', methods=['POST'])
 def delete_task():

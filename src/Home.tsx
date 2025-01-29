@@ -52,17 +52,36 @@ const Home: React.FC = () => {
   // サーバーからタスク一覧を取得
   const fetchTasks = async () => {
     try {
-      const response = await axios.get<Task[]>(`${BACKEND_URL}/task_list`)
+      const token = await getToken() // トークンを取得
+      if (!token) {
+        console.error('認証トークンが取得できませんでした')
+        return
+      }
+  
+      const response = await axios.get<Task[]>(`${BACKEND_URL}/task_list`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // トークンを送信
+        },
+      })
+  
       const tasks = response.data
-      setTaskList(tasks)
-
-      // カレンダー用イベントデータに変換
+  
+      // タスクを開始日時順にソート
+      const sortedTasks = tasks.sort(
+        (a, b) => dayjs(a.startdate).valueOf() - dayjs(b.startdate).valueOf()
+      )
+  
+      // 一覧には最大 4 件だけ表示
+      setTaskList(sortedTasks.slice(0, 4))
+  
+      // カレンダーにはすべてのタスクをセット
       const mapData = createEventItems(tasks)
       setEventItems(mapData)
     } catch (error) {
       console.error('タスク取得エラー: ', error)
     }
   }
+  
 
   // タスク削除
   const deleteTask = async (id: number | undefined) => {
@@ -379,6 +398,9 @@ const Home: React.FC = () => {
                     </Text>
                   </TouchableOpacity>
                 ) : null}
+                <Text style={styles.optionText}>
+                  メモ: {selectedTask.memo}
+                </Text>
               </>
             )}
             <TouchableOpacity
@@ -406,7 +428,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   topContainer: {
-    //flex: 1,
+    flex: 1,
     flexDirection: 'row',
     padding: 10,
   },
@@ -485,7 +507,6 @@ const styles = StyleSheet.create({
   },
   calendar: {
     // 下段カレンダー
-    height: 600,
   },
 
   modalContainer: {
